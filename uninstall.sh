@@ -38,11 +38,14 @@ if [ -S "${HOME}/.ssh/agent.sock" ]; then
     rm -f "${HOME}/.ssh/agent.sock"
 fi
 
+# Remove symlink to npiperelay.exe
+if [ -L "${HOME}/.local/bin/npiperelay.exe" ]; then
+    echo "Removing npiperelay.exe symlink..."
+    rm -f "${HOME}/.local/bin/npiperelay.exe"
+fi
+
 echo ""
 echo "Uninstallation complete!"
 echo ""
 echo "Remember to remove the following line from your ~/.bashrc or ~/.zshrc:"
 echo "  export SSH_AUTH_SOCK=\$HOME/.ssh/agent.sock"
-echo ""
-echo "If you enabled lingering, you can disable it with:"
-echo "  sudo loginctl disable-linger ${USER}"

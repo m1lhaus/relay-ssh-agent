@@ -19,11 +19,29 @@ if ! command -v socat &> /dev/null; then
 fi
 
 # Check if npiperelay.exe is available
-if ! command -v npiperelay.exe &> /dev/null; then
-    echo "Warning: npiperelay.exe not found in PATH."
-    echo "Make sure npiperelay.exe is installed and accessible from WSL."
-    echo "You can download it from: https://github.com/jstarks/npiperelay"
+NPIPERELAY_PATH=""
+if command -v npiperelay.exe &> /dev/null; then
+    NPIPERELAY_PATH=$(which npiperelay.exe)
+else
+    echo "Error: npiperelay.exe not found in PATH."
+    echo "Please install npiperelay.exe and ensure it's accessible from WSL."
+    echo "Download from: https://github.com/jstarks/npiperelay"
+    exit 1
 fi
+
+echo "Found npiperelay.exe at: ${NPIPERELAY_PATH}"
+
+# Create user bin directory if it doesn't exist
+mkdir -p "${HOME}/.local/bin"
+
+# Create symlink to npiperelay.exe in ~/.local/bin
+if [ -L "${HOME}/.local/bin/npiperelay.exe" ]; then
+    echo "Removing existing symlink..."
+    rm -f "${HOME}/.local/bin/npiperelay.exe"
+fi
+
+echo "Creating symlink to npiperelay.exe in ~/.local/bin..."
+ln -s "${NPIPERELAY_PATH}" "${HOME}/.local/bin/npiperelay.exe"
 
 # Create systemd user directory if it doesn't exist
 mkdir -p "${USER_SYSTEMD_DIR}"
