@@ -1,0 +1,22 @@
+[Unit]
+Description=SSH Agent Relay to Windows
+Documentation=https://github.com/jstarks/npiperelay
+After=network.target
+# Add a small delay to ensure Windows SSH agent is fully initialized
+After=multi-user.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+# Use the user's home directory
+WorkingDirectory=%h
+ExecStartPre=/bin/sleep 10
+ExecStartPre=/bin/rm -f %h/.ssh/agent.sock
+ExecStart=/usr/bin/socat UNIX-LISTEN:%h/.ssh/agent.sock,fork EXEC:"npiperelay.exe -ei -s //./pipe/openssh-ssh-agent",nofork
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
