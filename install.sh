@@ -13,9 +13,15 @@ echo "Installing SSH Agent Relay service..."
 
 # Check if socat is installed
 if ! command -v socat &> /dev/null; then
-    echo "Error: socat is not installed."
-    echo "Please install it with: sudo apt-get install socat"
-    exit 1
+    echo "socat is not installed. Installing now..."
+    echo "You may be prompted for your sudo password."
+    echo ""
+    sudo apt-get update && sudo apt-get install -y socat
+    if ! command -v socat &> /dev/null; then
+        echo "Error: Failed to install socat."
+        exit 1
+    fi
+    echo "socat installed successfully."
 fi
 
 # Check if npiperelay.exe is available
