@@ -19,11 +19,9 @@ if ! command -v socat &> /dev/null; then
 fi
 
 # Check if npiperelay.exe is available
-NPIPERELAY_PATH=""
-if command -v npiperelay.exe &> /dev/null; then
-    NPIPERELAY_PATH=$(which npiperelay.exe)
-else
-    echo "Error: npiperelay.exe not found in PATH."
+NPIPERELAY_PATH=$(whereis npiperelay.exe | grep -oE '/mnt/[^ ]+' | head -n1)
+if [ -z "${NPIPERELAY_PATH}" ] || [ ! -f "${NPIPERELAY_PATH}" ]; then
+    echo "Error: npiperelay.exe not found in Windows filesystem (/mnt/*)."
     echo "Please install npiperelay.exe and ensure it's accessible from WSL."
     echo "Download from: https://github.com/jstarks/npiperelay"
     exit 1
@@ -42,6 +40,14 @@ fi
 
 echo "Creating symlink to npiperelay.exe in ~/.local/bin..."
 ln -s "${NPIPERELAY_PATH}" "${HOME}/.local/bin/npiperelay.exe"
+
+# Verify symlink is valid
+if [ -L "${HOME}/.local/bin/npiperelay.exe" ] && [ -e "${HOME}/.local/bin/npiperelay.exe" ]; then
+    echo "Symlink created successfully and is valid"
+else
+    echo "Error: Failed to create valid symlink to npiperelay.exe"
+    exit 1
+fi
 
 # Create systemd user directory if it doesn't exist
 mkdir -p "${USER_SYSTEMD_DIR}"
@@ -67,14 +73,28 @@ echo ""
 echo "Service status:"
 systemctl --user status "${SERVICE_NAME}" --no-pager || true
 
+# Update .bashrc with SSH_AUTH_SOCK export
+BASHRC="${HOME}/.bashrc"
+SSH_AUTH_EXPORT="export SSH_AUTH_SOCK=\$HOME/.ssh/agent.sock"
+
+echo ""
+if grep -q "export SSH_AUTH_SOCK" "${BASHRC}" 2>/dev/null; then
+    echo "Warning: 'export SSH_AUTH_SOCK' already exists in ~/.bashrc"
+    echo "Please verify it is set to: export SSH_AUTH_SOCK=\$HOME/.ssh/agent.sock"
+else
+    echo "Adding SSH_AUTH_SOCK export to ~/.bashrc..."
+    echo "" >> "${BASHRC}"
+    echo "# SSH Agent Relay" >> "${BASHRC}"
+    echo "${SSH_AUTH_EXPORT}" >> "${BASHRC}"
+    echo "Successfully added to ~/.bashrc"
+    echo "Run 'source ~/.bashrc' or restart your shell to apply changes"
+fi
+
 echo ""
 echo "Installation complete!"
 echo ""
 echo "To ensure the service starts automatically:"
 echo "  sudo loginctl enable-linger ${USER}"
-echo ""
-echo "Add this to your ~/.bashrc or ~/.zshrc:"
-echo "  export SSH_AUTH_SOCK=\$HOME/.ssh/agent.sock"
 echo ""
 echo "Useful commands:"
 echo "  Status:  systemctl --user status ${SERVICE_NAME}"

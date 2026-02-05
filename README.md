@@ -29,13 +29,9 @@ chmod +x install.sh
 ./install.sh
 ```
 
-3. Add to your `~/.bashrc` or `~/.zshrc`:
+The install script will automatically add `export SSH_AUTH_SOCK=$HOME/.ssh/agent.sock` to your `~/.bashrc` if not already present.
 
-```bash
-export SSH_AUTH_SOCK=$HOME/.ssh/agent.sock
-```
-
-4. Reload your shell or run `source ~/.bashrc`
+3. Reload your shell or run `source ~/.bashrc`
 
 ## Usage
 
@@ -66,3 +62,5 @@ Run the uninstall script:
 chmod +x uninstall.sh
 ./uninstall.sh
 ```
+
+**Note:** You will need to manually remove the `export SSH_AUTH_SOCK=$HOME/.ssh/agent.sock` line from your `~/.bashrc` if you no longer need it.
